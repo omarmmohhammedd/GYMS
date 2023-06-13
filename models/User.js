@@ -12,6 +12,7 @@ module.exports = mongoose.model("User", new mongoose.Schema({
         min:6,
         required: [true, "Please Enter Your Password With Minmum length 6"]
     },
+    gender: String,
     role: {
         type: String,
         default: "client",

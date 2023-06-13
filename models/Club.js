@@ -10,17 +10,34 @@ module.exports = mongoose.model("Club", new mongoose.Schema({
         required: [true, "Please Enter Gender"],
         enum: ["male", "female", "both"]
     },
+    days: {
+        type: String,
+        required:[true,"please add Days"]
+    },
+    from: {
+        type: String,
+        required:[true,"Please Enter From Time"]
+    },
+    to: {
+        type: String,
+        required:[true,"Please Enter To Time"]
+    },
     city: {
         type: String,
         required: [true, "Please Enter City Name"]
     },
-    location: {
+    lat: {
         type: String,
-        required: [true, "Please Enter Location Name "]
+        required:[true,"please add club lat"]
+    },
+    lat: {
+        type: String,
+        required: [true,"please add club long"]
     },
     description: {
         type: String,
         required: [true, "Please Enter Description "]
     },
-    images: Array
+    images: Array,
+    location: String
 }))

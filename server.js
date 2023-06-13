@@ -16,6 +16,7 @@ app.use(cors())
 
 app.use("/auth",require("./routes/auth"))
 app.use("/admin",require("./middlewares/verifyRoles")("admin"),require("./routes/admin"))
+app.use("/user", require("./middlewares/verifyToken"), require("./routes/user"));
 
 
 

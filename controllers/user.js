@@ -1,7 +1,7 @@
 const Club = require("../models/Club")
 const asyncHandler = require("express-async-handler")
 const Subscriptions = require("../models/Subscriptions")
-const userSub = requirre("../models/userSub.js")
+const userSub = require("../models/userSub.js")
 exports.getClubs = asyncHandler(async (req, res, next) => res.json({ Clubs: await Club.find({}) }))
 
 exports.getClub = asyncHandler(async (req, res, next) => {
