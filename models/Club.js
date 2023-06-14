@@ -39,5 +39,10 @@ module.exports = mongoose.model("Club", new mongoose.Schema({
         required: [true, "Please Enter Description "]
     },
     images: Array,
-    location: String
-}))
+    location: String,
+    logo: String,
+    commission: {
+        type: Number,
+        required:[true,"Please Enter Commmission Of Club"]
+    }
+},{timestamps:true}))

@@ -9,14 +9,16 @@ exports.addClubValidator = [
     check("long").notEmpty().withMessage("Please Enter Valid long Of location"),
     check("description").notEmpty().withMessage("Please Enter Valid Description Of Club"),
     check("gender").notEmpty().withMessage("Please Enter Valid Gender Of Users"),
+    check("commission").notEmpty().withMessage("Please Enter Valid Commission "),
     validator
 ]
 
 exports.editClubValidator = [
     check("name").optional().notEmpty().withMessage("Please Enter Name Of Club"),
-    check("city").optional().notEmpty().withMessage("Please Enter Valid City Of Club"),
-    check("location").optional().notEmpty().withMessage("Please Enter Valid Location Of Club"),
     check("description").optional().notEmpty().withMessage("Please Enter Valid Description Of Club"),
     check("gender").optional().notEmpty().withMessage("Please Enter Valid Gender Of Users"),
+    check("lat").optional().notEmpty().withMessage("Please Enter Valid lat Of location"),
+    check("long").optional().notEmpty().withMessage("Please Enter Valid long Of location"),
+    check("commission").optional().notEmpty().withMessage("Please Enter Valid Commission "),
     validator
 ]
