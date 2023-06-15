@@ -7,6 +7,9 @@ const cloudinary = require("cloudinary").v2
 const { getPlace } = require("../utils/Map")
 const Rules = require("../models/Rules")
 const axios = require("axios")
+const UserReports = require("../models/userReports")
+
+
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
     api_key: process.env.CLOUD_API_KEY,
@@ -59,15 +62,31 @@ exports.editClub = asyncHandler(async (req, res, next) => {
  
 })
 
+exports.deleteClub = asyncHandler(async (req, res, next) => {
+    await Club.findById(req.params.club_id).then(async(club) => {
+        if (!club) return next(new ApiError("Club Not Found", 404))
+        await Club.findByIdAndDelete(club.id).then(async () => {
+            await User.findOneAndDelete({club:req.params.club_id}).then(()=>res.sendStatus(200))
+        })
+    })
+})
+
 // Add Rule
 exports.addRule = asyncHandler(async (req, res, next) => {
     const { type } = req.query
-    if (type === "uses" || type === "privacy") {
+    if (type === "uses" ) {
         const { textBody } = req.body
         if (!textBody.length) return next(new ApiError("Please Add a textBody", 400))
         await Rules.findOne({ type }).then(async (rule) => {
             if (rule) await Rules.findOneAndUpdate({ type }, { textBody }).then((uses) => res.json(uses))
             else await Rules.create({ textBody, type }).then((uses) => res.json(uses))
+        })
+       
+    } else if (type === "contact_number") {
+        const { phone1, phone2, location1, location2 } = req.body
+        await Rules.findOne({ type }).then(async (rule) => {
+            if (rule) await Rules.findOneAndUpdate({ type }, { phone1: phone1 && phone1, phone2: phone2 && phone2, location1: location1 && location1, location2: location2 && location2},{new:true}).then((uses) => res.json(uses))
+            else await Rules.create({ phone1: phone1 && phone1, phone2: phone2 && phone2, type, location1: location1 && location1, location2: location2 && location2 }).then((uses) => res.json(uses))
         })
     } else if (type === 'main_img') {
         const main_img = req.file && (await cloudinary.uploader.upload(req.file.path)).secure_url
@@ -159,3 +178,5 @@ exports.activePayment = asyncHandler(async (req, res, next) => {
         }
     })
 })
+
+exports.getUserReports = asyncHandler(async (req, res, next) => await UserReports.find({}).then(reports=>res.json({reports})))

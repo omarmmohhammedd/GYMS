@@ -12,5 +12,11 @@ module.exports = mongoose.model("Subscriptions", new mongoose.Schema({
     price: {
         type: Number,
         required: [true, "Enter Subscription Name"]
+    },
+    type: {
+        type: String,
+        enum: ["سنوي", "شهري", "اسبوعي", "يومي"],
+        required: [true,"Please Add a Subscription Date"]
     }
+    
 }, { timestamps: true }))

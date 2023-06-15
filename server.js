@@ -6,6 +6,8 @@ require("dotenv").config()
 const PORT = process.env.PORT || 8080
 const path = require("path")
 const DB = require("./config/DB.config")
+const verifyToken = require("./middlewares/verifyToken")
+const verifyRoles = require("./middlewares/verifyRoles")
 
 app.use(express.static(path.join(__dirname, "images")))
 app.use(express.json())
@@ -17,7 +19,7 @@ app.use(cors())
 app.use("/auth",require("./routes/auth"))
 app.use("/admin",require("./middlewares/verifyRoles")("admin"),require("./routes/admin"))
 app.use("/user", require("./routes/user"));
-
+app.use("/club",verifyRoles("club"),require("./routes/club"))
 
 
 
