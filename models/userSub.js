@@ -13,9 +13,7 @@ module.exports = mongoose.model("UserSub", new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Subscriptions"
     },
-    date: {
-        type: Date,
-        defult: Date.now()
-    },
+    start_date: Date,
+    end_date:Date,
     expired: Boolean
 }))

@@ -20,7 +20,12 @@ app.use("/auth",require("./routes/auth"))
 app.use("/admin",require("./middlewares/verifyRoles")("admin"),require("./routes/admin"))
 app.use("/user", require("./routes/user"));
 app.use("/club",verifyRoles("club"),require("./routes/club"))
-
+app.get("/success", (req, res, next) => {
+    const { paymentId, PayerID } =req.query
+    console.log(paymentId, PayerID) 
+    res.send(req.query)
+})
+app.get("/cancel",(req,res)=>res.send("Cancelled"))
 
 
 

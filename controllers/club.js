@@ -13,5 +13,4 @@ exports.addSubscreptions = asyncHandler(async(req, res, next) => {
             await Subscriptions.create({ club: club.club, name, price, type }).then((sub) => res.status(201).json({ sub }))
         }) 
     })
-  
 })
