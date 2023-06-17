@@ -1,12 +1,20 @@
-const { getClubs, getClub, getRules, makeReport, userMakeSub, confirmPayment } = require("../controllers/user")
+const { getClubs, getClub, getRules, makeReport, userMakeSub, confirmPayment, getClubAuth, searchClub, searchClubByName, filterClubs, depositWallet, confirmDeposit, getUserWallet, userBooking } = require("../controllers/user")
 const router = require("express").Router()
 const verifyToken = require("../middlewares/verifyToken")
 
 
 router.get("/clubs", getClubs)
 router.get("/club/:club_id", getClub)
+router.get("/club", searchClub)
+router.get("/club_auth/:club_id", verifyToken, getClubAuth)
+router.get("/clubs/search", searchClubByName)
+router.get("/clubs/filter", filterClubs)
 router.get("/rules", getRules)
 router.post("/user_reports", makeReport)
 router.post("/make_sub/:subId", verifyToken, userMakeSub)
 router.post("/confirm_payment/:subId", verifyToken, confirmPayment)
+router.post("/wallet", depositWallet)
+router.post("/wallet_confirm", verifyToken, confirmDeposit)
+router.get("/wallet", verifyToken, getUserWallet)
+router.get("/booking", verifyToken,userBooking)
 module.exports = router

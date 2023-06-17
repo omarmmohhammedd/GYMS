@@ -15,5 +15,9 @@ module.exports = mongoose.model("UserSub", new mongoose.Schema({
     },
     start_date: Date,
     end_date:Date,
-    expired: Boolean
+    expired: {
+        type:Boolean,
+        default:false
+    },
+    code:Number
 }))

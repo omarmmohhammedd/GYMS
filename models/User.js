@@ -22,5 +22,6 @@ module.exports = mongoose.model("User", new mongoose.Schema({
     club: {
         type: mongoose.Schema.Types.ObjectId,
         ref:"Club"
-    }
+    },
+    wallet:Number
 }))

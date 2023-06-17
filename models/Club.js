@@ -22,15 +22,19 @@ module.exports = mongoose.model("Club", new mongoose.Schema({
         type: String,
         required:[true,"Please Enter To Time"]
     },
+    country: {
+        type: String,
+        required: [true, "Please Enter country Name"]
+    },
     city: {
         type: String,
-        required: [true, "Please Enter City Name"]
+        required: [true, "Please Enter city Name"]
     },
     lat: {
         type: String,
         required:[true,"please add club lat"]
     },
-    lat: {
+    long: {
         type: String,
         required: [true,"please add club long"]
     },

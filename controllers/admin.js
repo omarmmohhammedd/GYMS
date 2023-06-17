@@ -3,11 +3,14 @@ const User = require("../models/User")
 const asyncHandler = require("express-async-handler")
 const ApiError = require("../utils/ApiError")
 const bcrypt = require("bcrypt")
-const cloudinary = require("cloudinary").v2
 const { getPlace } = require("../utils/Map")
 const Rules = require("../models/Rules")
 const axios = require("axios")
 const UserReports = require("../models/userReports")
+const { getLocationName } = require("../utils/Map")
+const cloudinary = require("cloudinary").v2
+
+
 
 
 cloudinary.config({
@@ -21,52 +24,86 @@ exports.addClub = asyncHandler(async (req, res, next) => {
     const { name, email, password, lat, long, description, gender, from, to, days, commission } = req.body
     if (!req.files.clubImg) return next(new ApiError("Please Add Club Imgs", 409))
     if (!req.files.logo) return next(new ApiError("Please Add Club logo", 409))
+    const place_name = await getLocationName(lat, long)
+    if (!place_name) return next(new ApiError("Location Not Found", 404))
     const imgs_path = await Promise.all(req.files.clubImg.map(async img => {
         const uploadImg = await cloudinary.uploader.upload(img.path);
         return uploadImg.secure_url;
     }));
     const logo = (await cloudinary.uploader.upload(req.files.logo[0].path)).secure_url
-    const place_name = await getPlace(Number(lat) ,Number(long) )
     await User.findOne({ email }).then(async user => {
         if (user) return next(new ApiError("User With This Email is Exists", 409))
-        await Club.create({ name, city: `${place_name.split(" ")[place_name.split(" ").length - 2]}-${place_name.split(" ")[place_name.split(" ").length - 1]}`, location: place_name, description, gender, images: imgs_path, lat: Number(lat), long: Number(long), logo, from, to, days,commission }).then(async club => {
-            await User.create({ email, password: await bcrypt.hash(password, 10), role: "club", club: club.id, home_location: place_name,username:name })
-            res.status(201).json({ club })
-        })
+        await Club.create(
+            {
+                name: name.trim(),
+                country: `${(place_name.split(",")[place_name.split(",").length - 1]).trim()}`,
+                city: `${(place_name.split(",")[place_name.split(",").length - 2]).trim()}`,
+                location: place_name,
+                description,
+                gender,
+                images: imgs_path,
+                lat: Number(lat),
+                long: Number(long),
+                logo,
+                from,
+                to,
+                days,
+                commission
+            }).then(async club => {
+                await User.create(
+                    {
+                        email,
+                        password: await bcrypt.hash(password, 10),
+                        role: "club",
+                        club: club.id,
+                        home_location: place_name,
+                        username: name
+                    })
+                res.status(201).json({ club })
+            })
     })
 })
 
 exports.editClub = asyncHandler(async (req, res, next) => {
     const { club_id } = req.params
-    const { name, lat, long, description, gender, from, to, days,commission } = req.body
-    let imgs_path = []
-    if (req.files.clubImg) {
-        imgs_path = await Promise.all(req.files.clubImg.map(async img => {
-            const uploadImg = await cloudinary.uploader.upload(img.path);
-            return uploadImg.secure_url;
-        }));
-    }
-    let logo = req.files.logo && (await cloudinary.uploader.upload(req.files.logo[0].path)).secure_url
+    const { name, lat, long, description, gender, from, to, days, commission } = req.body
+    let imgs_path = req.files && req.files.clubImg && await Promise.all(req.files.clubImg.map(async img => {
+        const uploadImg = await cloudinary.uploader.upload(img.path);
+        return uploadImg.secure_url;
+    }))
+    let logo = req.files && req.files.logo && (await cloudinary.uploader.upload(req.files.logo[0].path)).secure_url
     let place_name;
-    if (lat && long) place_name = await getPlace(Number(lat),Number(long))
-        await Club.findById(club_id).then(async club => {
-            if (!club) return next(new ApiError("Club Not Found", 404))
-            await Club.findByIdAndUpdate(club_id,
-                {
-                    name: name && name,
-                    city: place_name && `${place_name.split(" ")[place_name.split(" ").length - 2]}-${place_name.split(" ")[place_name.split(" ").length - 1]}`,
-                    location: place_name && place_name, description: description && description, gender: gender && gender, images: imgs_path.length && imgs_path, logo: logo && logo, lat: place_name && Number(lat), long: place_name && Number(long), from: from && from, to: to && to, days: days && days, commission: commission && commission
-                },{new:true}).then((club) => res.json({ club }))
-        })
-
- 
+    if (lat && long) {
+        place_name = await getLocationName(lat, long)
+        if (!place_name) return next(new ApiError("Location Not Found", 404))
+    }
+    await Club.findById(club_id).then(async club => {
+        if (!club) return next(new ApiError("Club Not Found", 404))
+        await Club.findByIdAndUpdate(club_id,
+            {
+                name: name && name,
+                country: place_name && `${place_name.split(",")[place_name.split(",").length - 1]}`,
+                city: place_name && `${place_name.split(",")[place_name.split(",").length - 2]}`,
+                location: place_name && place_name,
+                description: description && description,
+                gender: gender && gender,
+                images: imgs_path && imgs_path,
+                logo: logo && logo,
+                lat: place_name && Number(lat),
+                long: place_name && Number(long),
+                from: from && from,
+                to: to && to,
+                days: days && days,
+                commission: commission && commission
+            }, { new: true }).then((club) => res.json({ club }))
+    })
 })
 
 exports.deleteClub = asyncHandler(async (req, res, next) => {
-    await Club.findById(req.params.club_id).then(async(club) => {
+    await Club.findById(req.params.club_id).then(async (club) => {
         if (!club) return next(new ApiError("Club Not Found", 404))
         await Club.findByIdAndDelete(club.id).then(async () => {
-            await User.findOneAndDelete({club:req.params.club_id}).then(()=>res.sendStatus(200))
+            await User.findOneAndDelete({ club: req.params.club_id }).then(() => res.sendStatus(200))
         })
     })
 })
@@ -74,18 +111,18 @@ exports.deleteClub = asyncHandler(async (req, res, next) => {
 // Add Rule
 exports.addRule = asyncHandler(async (req, res, next) => {
     const { type } = req.query
-    if (type === "uses" ) {
+    if (type === "uses") {
         const { textBody } = req.body
         if (!textBody.length) return next(new ApiError("Please Add a textBody", 400))
         await Rules.findOne({ type }).then(async (rule) => {
             if (rule) await Rules.findOneAndUpdate({ type }, { textBody }).then((uses) => res.json(uses))
             else await Rules.create({ textBody, type }).then((uses) => res.json(uses))
         })
-       
+
     } else if (type === "contact_number") {
         const { phone1, phone2, location1, location2 } = req.body
         await Rules.findOne({ type }).then(async (rule) => {
-            if (rule) await Rules.findOneAndUpdate({ type }, { phone1: phone1 && phone1, phone2: phone2 && phone2, location1: location1 && location1, location2: location2 && location2},{new:true}).then((uses) => res.json(uses))
+            if (rule) await Rules.findOneAndUpdate({ type }, { phone1: phone1 && phone1, phone2: phone2 && phone2, location1: location1 && location1, location2: location2 && location2 }, { new: true }).then((uses) => res.json(uses))
             else await Rules.create({ phone1: phone1 && phone1, phone2: phone2 && phone2, type, location1: location1 && location1, location2: location2 && location2 }).then((uses) => res.json(uses))
         })
     } else if (type === 'main_img') {
@@ -128,7 +165,7 @@ exports.addRule = asyncHandler(async (req, res, next) => {
                 return next(new ApiError(err.message, 401))
             })
         }
-    }else if (type === "whatsapp") {
+    } else if (type === "whatsapp") {
         const { whatsapp } = req.body
         if (!whatsapp) return next(new ApiError("Whatsapp Required", 400))
         await Rules.findOne({ type }).then(async (rule) => {
@@ -159,7 +196,7 @@ exports.addRule = asyncHandler(async (req, res, next) => {
             ).then(questions => res.json({ questions }))
             else await Rules.create({ questions: [{ question, answer }], type }).then(questions => res.json({ questions }))
         })
-        
+
     }
     else return next(new ApiError("Invalid Type To Be Modify", 403))
 }
@@ -179,4 +216,4 @@ exports.activePayment = asyncHandler(async (req, res, next) => {
     })
 })
 
-exports.getUserReports = asyncHandler(async (req, res, next) => await UserReports.find({}).then(reports=>res.json({reports})))
+exports.getUserReports = asyncHandler(async (req, res, next) => await UserReports.find({}).then(reports => res.json({ reports })))
