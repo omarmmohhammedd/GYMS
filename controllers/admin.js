@@ -8,6 +8,8 @@ const Rules = require("../models/Rules")
 const axios = require("axios")
 const UserReports = require("../models/userReports")
 const { getLocationName } = require("../utils/Map")
+const Subscriptions = require("../models/Subscriptions")
+const userSub = require("../models/userSub")
 const cloudinary = require("cloudinary").v2
 
 
@@ -217,3 +219,39 @@ exports.activePayment = asyncHandler(async (req, res, next) => {
 })
 
 exports.getUserReports = asyncHandler(async (req, res, next) => await UserReports.find({}).then(reports => res.json({ reports })))
+
+exports.clubReports = asyncHandler(async (req, res, next) => {
+    await Club.find({}).then(async clubs => {
+        const filterClubs = await Promise.all(clubs.map(async (club) => {
+            const clubsGain = await Subscriptions.find({ club: club.id }).then(async (subs) => {
+                let all_players = (await userSub.find({ club: club.id, expired: false })).length
+                let players_day, players_month, players_year
+                players_day = players_month = players_year = 0
+                let day, month, year;
+                day = month = year = 0
+                await Promise.all(subs.map(async (sub) => {
+                    if (sub.type === 'يومي') {
+                        players_day=(await userSub.find({subscription:sub.id})).length
+                        day += Number(sub.price)
+                    } else if (sub.type === "شهري") {
+                        players_month = (await userSub.find({ subscription: sub.id })).length
+                        month += Number(sub.price)
+                    } else {
+                        players_year = (await userSub.find({ subscription: sub.id })).length
+                        year += Number(sub.price)
+                    }
+                }))
+                return {
+                    club_name: club.name,
+                    club_city: club.city,
+                    club_players: all_players,
+                    day: day * players_day,
+                    month: month * players_month,
+                    year: year * players_year
+                }
+            })
+            return clubsGain
+        }))
+        res.json({ clubs_report: filterClubs })
+    })
+})

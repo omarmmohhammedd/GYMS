@@ -267,6 +267,7 @@ exports.confirmDeposit = asyncHandler(async (req, res, next) => {
         });
     })
 })
+
 exports.searchClubByName = asyncHandler(async (req, res, next) => {
     const { country, city } = req.body;
     await Club.find({ $or: [{ country, city: { $regex: new RegExp(`.*${city}.*`, 'i') } }] })

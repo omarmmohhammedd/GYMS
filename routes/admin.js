@@ -1,5 +1,5 @@
 const router = require("express").Router()
-const { addClub, editClub, addRule, activePayment, deleteClub, getUserReports } = require("../controllers/admin")
+const { addClub, editClub, addRule, activePayment, deleteClub, getUserReports, clubReports } = require("../controllers/admin")
 const { addClubValidator, editClubValidator} = require("../utils/validators/admin")
 const { check } = require("express-validator")
 const validator = require("../middlewares/validator")
@@ -16,5 +16,7 @@ router.put("/payment/:payment_id", activePayment)
 
 // Reports
 router.get("/user_reports", getUserReports)
+
+router.get("/clubs/report", clubReports)
 
 module.exports = router

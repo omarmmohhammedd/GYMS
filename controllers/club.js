@@ -101,6 +101,8 @@ exports.deleteSubscription = asyncHandler(async (req, res, next) => {
             })
             })
         })
-    })
+})
+    
+exports.clubReports
 
 
