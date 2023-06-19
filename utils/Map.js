@@ -45,6 +45,7 @@ exports.getLocationName = async (latitude, longitude) => {
             params: {
                 latlng: `${latitude},${longitude}`,
                 key: "AIzaSyCewVD8Afv0cy6NGoCZkQ4PZRW3OQCFfHA",
+                language: "ar"
             }
         }).then((response) => {
             const results = response.data.results;

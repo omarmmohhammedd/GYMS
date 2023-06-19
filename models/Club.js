@@ -3,7 +3,8 @@ const mongoose = require('mongoose');
 module.exports = mongoose.model("Club", new mongoose.Schema({
     name: {
         type: String,
-        required: [true, "Please Enter Club Name"]
+        required: [true, "Please Enter Club Name"],
+        trim: true
     },
     gender: {
         type: String,
@@ -24,11 +25,13 @@ module.exports = mongoose.model("Club", new mongoose.Schema({
     },
     country: {
         type: String,
-        required: [true, "Please Enter country Name"]
+        required: [true, "Please Enter country Name"],
+        trim: true
     },
     city: {
         type: String,
-        required: [true, "Please Enter city Name"]
+        required: [true, "Please Enter city Name"],
+        trim: true
     },
     lat: {
         type: String,
@@ -43,7 +46,10 @@ module.exports = mongoose.model("Club", new mongoose.Schema({
         required: [true, "Please Enter Description "]
     },
     images: Array,
-    location: String,
+    location: {
+        type: String,
+        trim: true
+    },
     logo: String,
     commission: {
         type: Number,

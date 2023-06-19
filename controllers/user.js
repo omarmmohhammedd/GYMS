@@ -80,7 +80,8 @@ exports.getClubAuth = asyncHandler(async (req, res, next) => {
                                 club,
                                 distance,
                                 subscriptions,
-                                sub: sub ? {
+                                sub: sub ? true : false,
+                                data: sub ? {
                                     id: sub.id,
                                     username: (await User.findById(sub.user)).username,
                                     club_name: club.name,
@@ -91,7 +92,7 @@ exports.getClubAuth = asyncHandler(async (req, res, next) => {
                                     subscription_price: sub.subscription.price,
                                     code: sub.code,
                                     expired: sub.expired
-                                } : false
+                                } :{}
                             })
                     } else {
                         const user = await User.findById(sub.user)
@@ -278,8 +279,8 @@ exports.confirmDeposit = asyncHandler(async (req, res, next) => {
 })
 
 exports.searchClubByName = asyncHandler(async (req, res, next) => {
-    const { country, city } = req.body;
-    await Club.find({ $or: [{ country, city: { $regex: new RegExp(`.*${city}.*`, 'i') } }] })
+    const { country, city,gender } = req.body;
+    await Club.find({ $or: [{ country, gender,city: { $regex: new RegExp(`.*${city}.*`, 'i') } }] })
         .then((clubs) => res.json({ clubs }));
 });
 

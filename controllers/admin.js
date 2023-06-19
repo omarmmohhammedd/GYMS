@@ -3,7 +3,6 @@ const User = require("../models/User")
 const asyncHandler = require("express-async-handler")
 const ApiError = require("../utils/ApiError")
 const bcrypt = require("bcrypt")
-const { getPlace } = require("../utils/Map")
 const Rules = require("../models/Rules")
 const axios = require("axios")
 const UserReports = require("../models/userReports")
@@ -84,8 +83,8 @@ exports.editClub = asyncHandler(async (req, res, next) => {
         await Club.findByIdAndUpdate(club_id,
             {
                 name: name && name,
-                country: place_name && `${place_name.split(",")[place_name.split(",").length - 1]}`,
-                city: place_name && `${place_name.split(",")[place_name.split(",").length - 2]}`,
+                country: place_name && `${place_name.split(",")[place_name.split(",").length - 1].trim() }`,
+                city: place_name && `${place_name.split(",")[place_name.split(",").length - 2].trim() }`,
                 location: place_name && place_name,
                 description: description && description,
                 gender: gender && gender,
