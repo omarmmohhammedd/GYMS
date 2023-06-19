@@ -100,7 +100,8 @@ exports.getClubAuth = asyncHandler(async (req, res, next) => {
                             {
                                 club,
                                 subscriptions,
-                                sub: sub ? {
+                                sub: sub ? true : false,
+                                data: sub ? {
                                     id: sub.id,
                                     username: (await User.findById(sub.user)).username,
                                     club_name: club.name,
@@ -111,7 +112,7 @@ exports.getClubAuth = asyncHandler(async (req, res, next) => {
                                     subscription_price: sub.subscription.price,
                                     code: sub.code,
                                     expired: sub.expired
-                                } : false
+                                } : {}
                             })
                     }
                 }))
