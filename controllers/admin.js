@@ -141,6 +141,13 @@ exports.addRule = asyncHandler(async (req, res, next) => {
             if (rule) await Rules.findOneAndUpdate({ type }, { main_logo }).then((main_img) => res.json(main_img))
             else await Rules.create({ main_logo, type }).then((main_img) => res.json(main_img))
         })
+    } else if (type === 'app_bg') {
+        const app_bg = req.file && (await cloudinary.uploader.upload(req.file.path)).secure_url
+        if (!app_bg && !req.body.bg_color) return next(new ApiError("Please Add a app_bg or bg_color", 400))
+        await Rules.findOne({ type }).then(async (rule) => {
+            if (rule) await Rules.findOneAndUpdate({ type }, { app_bg: app_bg ? app_bg : req.body.bg_color },{new:true}).then((app_bg) => res.json({app_bg}))
+            else await Rules.create({ app_bg: app_bg? app_bg: req.body.bg_color, type }).then((app_bg) => res.json({app_bg}))
+        })
     } else if (type === "payment") {
         const { payment_type } = req.body
         if (payment_type === "paypal") {

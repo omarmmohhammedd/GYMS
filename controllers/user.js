@@ -296,7 +296,7 @@ exports.filterClubs = asyncHandler(async (req, res, next) => {
                 if (!distance) return next(new ApiError("Invalid distance", 400))
                 clubsWithDistance.push({ ...club.toObject(), distance: distance && distance });
             }
-            res.json({ clubs: clubsWithDistance.sort((a, b) => Number(a.distance.split(" ")[0].replace(",", "")) - Number(b.distance.split(" ")[0].replace(",", ""))) })
+            res.json({ Clubs: clubsWithDistance.sort((a, b) => Number(a.distance.split(" ")[0].replace(",", "")) - Number(b.distance.split(" ")[0].replace(",", ""))) })
         }
         else if (filter === "lowest") {
             const clubs = await Club.find({}).lean()
@@ -314,7 +314,6 @@ exports.filterClubs = asyncHandler(async (req, res, next) => {
                     },
                 },
             ]);
-
             const sortedClubs = clubs.map((club) => {
                 const lowestSubscription = lowestSubscriptions.find(
                     (subscription) => subscription._id.toString() === club._id.toString()
@@ -329,7 +328,7 @@ exports.filterClubs = asyncHandler(async (req, res, next) => {
             });
 
             sortedClubs.sort((a, b) => a.lowestSubscriptionPrice - b.lowestSubscriptionPrice);
-            res.json({ clubs: sortedClubs })
+            res.json({ Clubs: sortedClubs })
         }
         else if (filter === "best") {
             await Club.aggregate([
@@ -342,14 +341,9 @@ exports.filterClubs = asyncHandler(async (req, res, next) => {
                     },
                 },
                 {
-                    $addFields: {
-                        subscriptionCount: { $size: '$subscriptions' },
-                    },
-                },
-                {
                     $sort: { subscriptionCount: -1 },
                 },
-            ]).then((clubs) => res.json({ clubs }))
+            ]).then((Clubs) => res.json({ Clubs }))
         }
     })
 })

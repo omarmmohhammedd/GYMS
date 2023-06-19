@@ -22,12 +22,11 @@ exports.calcDistance = async (origin, destination) => {
             paramsSerializer: paramsSerializer
         });
         const { status, rows } = response.data;
-
         if (status === 'OK' && rows.length > 0) {
             const { elements } = rows[0];
 
             if (elements.length > 0) {
-                const distance = elements[0].distance.text;
+                const distance = elements[0].distance ?  elements[0].distance.text : false
                 return distance;
             }
         }
