@@ -145,8 +145,23 @@ exports.addRule = asyncHandler(async (req, res, next) => {
         const app_bg = req.file && (await cloudinary.uploader.upload(req.file.path)).secure_url
         if (!app_bg && !req.body.bg_color) return next(new ApiError("Please Add a app_bg or bg_color", 400))
         await Rules.findOne({ type }).then(async (rule) => {
-            if (rule) await Rules.findOneAndUpdate({ type }, { app_bg: app_bg ? app_bg : req.body.bg_color },{new:true}).then((app_bg) => res.json({app_bg}))
-            else await Rules.create({ app_bg: app_bg? app_bg: req.body.bg_color, type }).then((app_bg) => res.json({app_bg}))
+            if (rule) await Rules.findOneAndUpdate({ type }, app_bg ? { app_bg, app_bg_type: "img" } : req.body.bg_color && { app_bg:"req.body.bg_color", app_bg_type: "color" } ,{new:true}).then((app_bg) => res.json({app_bg}))
+            else await Rules.create(app_bg ? { app_bg, app_bg_type: "img", type } : req.body.bg_color && { app_bg: req.body.bg_color, app_bg_type: "color", type } ).then((app_bg) => res.json({app_bg}))
+        })
+    } else if (type === 'banner') {
+        const banner_img = req.file && (await cloudinary.uploader.upload(req.file.path)).secure_url
+        if (!banner_img) return next(new ApiError("Please Add a banne image ", 400))
+        await Rules.findOne({ type }).then(async (rule) => {
+            if (rule) await Rules.findOneAndUpdate({ type }, { banner_img }, { new: true }).then((banner) => res.json({ banner }))
+            else await Rules.create({ banner_img, type }).then((banner) => res.json({ banner }))
+        })
+    } else if (type === "payment") {
+    } else if (type === 'app_bg') {
+        const app_bg = req.file && (await cloudinary.uploader.upload(req.file.path)).secure_url
+        if (!app_bg && !req.body.bg_color) return next(new ApiError("Please Add a app_bg or bg_color", 400))
+        await Rules.findOne({ type }).then(async (rule) => {
+            if (rule) await Rules.findOneAndUpdate({ type }, app_bg ? { app_bg, app_bg_type: "img" } : req.body.bg_color && { app_bg:"req.body.bg_color", app_bg_type: "color" } ,{new:true}).then((app_bg) => res.json({app_bg}))
+            else await Rules.create(app_bg ? { app_bg, app_bg_type: "img" } : req.body.bg_color && { app_bg: "req.body.bg_color", app_bg_type: "color" } ,type).then((app_bg) => res.json({app_bg}))
         })
     } else if (type === "payment") {
         const { payment_type } = req.body

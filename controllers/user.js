@@ -10,7 +10,16 @@ const paypal = require("paypal-rest-sdk")
 const axios = require("axios");
 const { calcDistance } = require("../utils/Map")
 
-exports.getRules = asyncHandler(async (req, res) => res.json({ rules: await Rules.find({}) }))
+exports.getRules = asyncHandler(async (req, res) => {
+    if (req.query.type && req.query.type === "banner") {
+        const banner = (await Rules.findOne({ type: "banner" }))
+        if (!banner) res.json({ banner:""})
+        else res.json({ banner: banner.banner_img })
+
+    } else {
+        res.json({ rules: await Rules.find({}) })
+    }
+})
 
 exports.makeReport = asyncHandler(async (req, res) => await userReports.create({ name: req.body.name, phone: req.body.phone, email: req.body.email, message: req.body.message }).then(() => res.sendStatus(201)))
 
