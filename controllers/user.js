@@ -396,6 +396,7 @@ exports.userBooking = asyncHandler(async (req, res, next) => {
                 const expire_in = !sub.expired && Math.ceil(Math.abs(sub.end_date - new Date(Date.now())) / (1000 * 60 * 60 * 24));
                 return {
                     _id: sub._id,
+                    club_id: sub.club,
                     club_name: club.name,
                     club_days:club.days,
                     club_logo: club.logo,
