@@ -363,10 +363,12 @@ exports.filterClubs = asyncHandler(async (req, res, next) => {
 
 exports.getUserWallet = asyncHandler(async (req, res, next) => {
     const { id } = req.user
+    let total_price=0
     await User.findById(id).then(async user => {
         await userSub.find({ user: id, expired: false }).then(async subs => {
             if (subs.length > 0) {
                 const filterSubs = await Promise.all(subs.map(async sub => {
+                    total_price+=Number(sub.price)
                     const club = await Club.findById(sub.club) || { name: '', logo: '' }
                     return {
                         _id: sub._id,
@@ -378,9 +380,9 @@ exports.getUserWallet = asyncHandler(async (req, res, next) => {
                     }
                 }))
 
-                res.json({ subs: filterSubs, wallet: user.wallet })
+                res.json({ subs: filterSubs, wallet: user.wallet, total_price })
             } else {
-                res.json({ subs: [], wallet: user.wallet })
+                res.json({ subs: [], wallet: user.wallet, total_price })
             }
         })
     })
