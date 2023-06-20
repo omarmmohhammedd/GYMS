@@ -16,6 +16,10 @@ exports.getRules = asyncHandler(async (req, res) => {
         if (!banner) res.json({ banner:""})
         else res.json({ banner: banner.banner_img })
 
+    } else if (req.query.type === "app_bg") {
+        const app_bg = (await Rules.findOne({ type: "app_bg" }))
+        if (!app_bg) res.json({ app_bg: "" })
+        else res.json({ app_bg: app_bg.app_bg })
     } else {
         res.json({ rules: await Rules.find({}) })
     }
@@ -407,3 +411,4 @@ exports.userBooking = asyncHandler(async (req, res, next) => {
        
     })
 })
+
