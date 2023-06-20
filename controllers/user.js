@@ -294,12 +294,12 @@ exports.searchClub = asyncHandler(async (req, res, next) => {
             { name: { $regex: search, $options: 'i' } },
             { city: { $regex: search, $options: 'i' } },
             { location: { $regex: search, $options: 'i' } },
-        ]).then((clubs) => res.json({ clubs }))
+        ]).then((Clubs) => res.json({ Clubs }))
 })
 
 exports.filterClubs = asyncHandler(async (req, res, next) => {
     const { filter } = req.query
-    const { lat, long } = req.body
+    const { lat, long } = req.query
     await Club.find({}).then(async (clubs) => {
         if (filter === "nearby") {
             const clubsWithDistance = [];
