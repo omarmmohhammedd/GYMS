@@ -64,14 +64,12 @@ exports.getClub = asyncHandler(async (req, res, next) => {
 
 exports.getClubAuth = asyncHandler(async (req, res, next) => {
     const { id } = req.user
-    const { lat, long } = req.body;
+    const { lat, long } = req.query;
     const { club_id } = req.params
     await Club.findById(club_id).then(async (club) => {
         await Subscriptions.find({ club: req.params.club_id })
             .then(async subscriptions => await userSub.findOne({ club: club_id, user: id }).populate({ path: "subscription", select: "name price" })
                 .then(async sub => {
-
-
                     if (lat && long) {
                         let distance = await calcDistance(`${club.lat},${club.long}`, `${lat},${long}`)
                         if (!distance) return next(new ApiError("Invalid distance", 400))
@@ -86,8 +84,8 @@ exports.getClubAuth = asyncHandler(async (req, res, next) => {
                                     username: (await User.findById(sub.user)).username,
                                     club_name: club.name,
                                     club_location: club.location,
-                                    start_date: sub.start_date,
-                                    end_date: sub.end_date,
+                                    start_date: `${sub.start_date.getDate()}-${sub.start_date.getMonth() + 1}-${sub.start_date.getFullYear()}`,
+                                    end_date: `${sub.end_date.getDate()}-${sub.end_date.getMonth() + 1}-${sub.end_date.getFullYear()}`,
                                     subscription_name: sub.subscription.name,
                                     subscription_price: sub.subscription.price,
                                     code: sub.code,
@@ -106,8 +104,8 @@ exports.getClubAuth = asyncHandler(async (req, res, next) => {
                                     username: (await User.findById(sub.user)).username,
                                     club_name: club.name,
                                     club_location: club.location,
-                                    start_date: sub.start_date,
-                                    end_date: sub.end_date,
+                                    start_date: `${sub.start_date.getDate()}-${sub.start_date.getMonth() + 1}-${sub.start_date.getFullYear()}`,
+                                    end_date: `${sub.end_date.getDate()}-${sub.end_date.getMonth() + 1}-${sub.end_date.getFullYear()}`,
                                     subscription_name: sub.subscription.name,
                                     subscription_price: sub.subscription.price,
                                     code: sub.code,
