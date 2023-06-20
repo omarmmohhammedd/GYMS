@@ -368,8 +368,9 @@ exports.getUserWallet = asyncHandler(async (req, res, next) => {
         await userSub.find({ user: id, expired: false }).then(async subs => {
             if (subs.length > 0) {
                 const filterSubs = await Promise.all(subs.map(async sub => {
-                    total_price+=Number(sub.price)
                     const club = await Club.findById(sub.club) || { name: '', logo: '' }
+                    const subscription = await Subscriptions.findById(sub.subscription)
+                    total_price += Number(subscription.price)
                     return {
                         _id: sub._id,
                         club_name: club.name,
