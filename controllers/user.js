@@ -5,6 +5,7 @@ const userSub = require("../models/userSub.js")
 const User = require("../models/User.js")
 const Rules = require("../models/Rules")
 const userReports = require("../models/userReports")
+const Favorite = require("../models/Favorite")
 const ApiError = require("../utils/ApiError")
 const paypal = require("paypal-rest-sdk")
 const axios = require("axios");
@@ -131,6 +132,7 @@ exports.userMakeSub = asyncHandler(async (req, res, next) => {
             if (check) return next(new ApiError("User Already Make Subscreption in This Club "))
             await Subscriptions.findById(subId).then(async subscription => {
                 if (!subscription) return next(new ApiError("Can't find subscription", 404))
+
                 if (type === "paypal") {
                     await Rules.findOne({ payment_type: "paypal", active: true }).then((payment) => {
                         if (!payment) return next(new ApiError("PayPal Payment Not Found", 404))
@@ -174,6 +176,7 @@ exports.userMakeSub = asyncHandler(async (req, res, next) => {
                                 subscription.type === "اسبوعي" ? end_date.setDate(end_date.getDate() + 7) :
                                     subscription.type === "شهري" ? end_date.setMonth(end_date.getMonth() + 1) :
                                         subscription.type === "سنوي" && end_date.setFullYear(end_date.getFullYear() + 1)
+                            await userSub.findOne({user:id,sub})
                             await userSub.create({ user: id, club: subscription.club, subscription, start_date, end_date, code: user.code }).then(async () => {
                                 user.wallet -= Number(subscription.price)
                                 await user.save()
@@ -192,6 +195,7 @@ exports.confirmPayment = asyncHandler(async (req, res, next) => {
     const { paymentId, payerId } = req.body
     const { id } = req.user
     const userData = await User.findById(id)
+    const club = await Club.findById()
     await Subscriptions.findById(subId).then(async subscription => {
         if (!subscription) return next(new ApiError("Can't find subscription", 404))
         await Rules.findOne({ payment_type: "paypal", active: true }).then((payment) => {
@@ -211,9 +215,15 @@ exports.confirmPayment = asyncHandler(async (req, res, next) => {
                         subscription.type === "اسبوعي" ? end_date.setDate(end_date.getDate() + 7) :
                             subscription.type === "شهري" ? end_date.setMonth(end_date.getMonth() + 1) :
                                 subscription.type === "سنوي" && end_date.setFullYear(end_date.getFullYear() + 1)
-                    await userSub.create({ user: id, club: subscription.club, subscription, start_date, end_date, code: userData.code }).then(() => res.status(200).send('Payment successful'))
+                    const checkRenew = await userSub.find({ user: id, type: subscription.type, club, expired: true })
+                    console.log(checkRenew)
+                    // res.json(checkRenew)
+                    userSub.create({ user: id, club: subscription.club, subscription, start_date, end_date, code: userData.code }).then(() => res.status(200).send('Payment successful'))
+                    // if (checkRenew.length) {
+                    //     await userSub.findByIdAndUpdate(checkRenew.id, { end_date, start_date }).then(() => res.status(200).send('Payment successful'))
+                    // }
+                    // else await userSub.create({ user: id, club: subscription.club, subscription, start_date, end_date, code: userData.code }).then(() => res.status(200).send('Payment successful'))
                 }
-
             });
         })
     })
@@ -416,3 +426,22 @@ exports.userBooking = asyncHandler(async (req, res, next) => {
     })
 })
 
+exports.getUserFav = asyncHandler(async (req, res, next) => await Favorite.find({ user: req.user.id }).then((data)=>res.json({data})))
+
+exports.addOrRemoveFav = asyncHandler(async (req, res, next) => {
+    const { club_id } = req.params
+    const { id } = req.user
+    await Favorite.findOne({ club_id, user: id }).then(async (fav) => {
+        console.log(await Favorite.find({})) 
+        if (fav) await Favorite.findByIdAndDelete(fav.id).then(() => res.sendStatus(200))
+        else {
+            let price = 0
+            const club = await Club.findById(club_id)
+            const subs = await Subscriptions.find({ club: club_id }).sort({ price: 1 })
+            if (subs.length) {
+                price = subs[0].price
+            }
+            await Favorite.create({ club_id, user: id, club_logo: club.logo, club_name: club.name, price }).then(()=> res.sendStatus(200))
+        }
+    })
+})
