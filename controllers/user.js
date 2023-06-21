@@ -93,6 +93,7 @@ exports.getClubAuth = asyncHandler(async (req, res, next) => {
                                     club_location: club.location,
                                     start_date: `${sub.start_date.getDate()}-${sub.start_date.getMonth() + 1}-${sub.start_date.getFullYear()}`,
                                     end_date: `${sub.end_date.getDate()}-${sub.end_date.getMonth() + 1}-${sub.end_date.getFullYear()}`,
+                                    subscription_id: sub.subscription.id,
                                     subscription_name: sub.subscription.name,
                                     subscription_price: sub.subscription.price,
                                     code: sub.code,
@@ -114,6 +115,8 @@ exports.getClubAuth = asyncHandler(async (req, res, next) => {
                                     club_location: club.location,
                                     start_date: `${sub.start_date.getDate()}-${sub.start_date.getMonth() + 1}-${sub.start_date.getFullYear()}`,
                                     end_date: `${sub.end_date.getDate()}-${sub.end_date.getMonth() + 1}-${sub.end_date.getFullYear()}`,
+                                    subscription_id: sub.subscription.id,
+
                                     subscription_name: sub.subscription.name,
                                     subscription_price: sub.subscription.price,
                                     code: sub.code,
