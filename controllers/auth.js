@@ -3,7 +3,7 @@ const User = require("../models/User")
 const asyncHandler = require("express-async-handler")
 const ApiError = require("../utils/ApiError")
 const {sign} = require("jsonwebtoken")
-const validateSub = require("../utils/validateSub")
+
 exports.Register = asyncHandler(async (req, res, next) => {
     const { username, phone, password, home_location, email,gender } = req.body
     await User.findOne({ email }).then(async user => {
@@ -21,7 +21,7 @@ exports.Login = asyncHandler(async (req, res, next) => {
         if (!match) return next(new ApiError("Password Not Match", 400))
         const token = sign({ id: user.id, role: user.role }, process.env.TOKEN, { expiresIn: "30d" })
         delete user._doc.password
-        await validateSub(user.id)
+
         res.json({user,token})
     })
 })

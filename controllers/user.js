@@ -73,7 +73,7 @@ exports.getClubAuth = asyncHandler(async (req, res, next) => {
     const { club_id } = req.params
     await Club.findById(club_id).then(async (club) => {
         await Subscriptions.find({ club: req.params.club_id })
-            .then(async subscriptions => await userSub.findOne({ club: club_id, user: id }).populate({ path: "subscription", select: "name price" })
+            .then(async subscriptions => await userSub.findOne({ club: club_id, user: id,expired:false }).populate({ path: "subscription", select: "name price" })
                 .then(async sub => {
                     if (lat && long) {
                         let distance = await calcDistance(`${club.lat},${club.long}`, `${lat},${long}`)
@@ -214,23 +214,46 @@ exports.confirmPayment = asyncHandler(async (req, res, next) => {
                     const start_date = new Date(Date.now())
                     let end_date = new Date(Date.now())
                     end_date = subscription.type === "يومي" ? end_date.setDate(end_date.getDate() + 1) :
-                        subscription.type === "اسبوعي" ? end_date.setDate(end_date.getDate() + 7) :
-                            subscription.type === "شهري" ? end_date.setMonth(end_date.getMonth() + 1) :
-                                subscription.type === "سنوي" && end_date.setFullYear(end_date.getFullYear() + 1)
-                    // res.json(checkRenew)
+                    subscription.type === "اسبوعي" ? end_date.setDate(end_date.getDate() + 7) :
+                    subscription.type === "شهري" ? end_date.setMonth(end_date.getMonth() + 1) :
+                    subscription.type === "سنوي" && end_date.setFullYear(end_date.getFullYear() + 1)
                     if (userSubId) {
+                        console.log(start_date,end_date);
                         await userSub.findById(userSubId).then(async(sub) => {
                             if (!sub) return next(new ApiError("Can't Find User Pervious Subscription", 404))
-                            await userSub.findByIdAndUpdate(userSubId, { start_date, end_date },{new :true}).then((sub)=>res.json({sub}))
+                            await userSub.findByIdAndUpdate(userSubId, { start_date, end_date, expired :false},{new :true}).then((sub)=>res.json({sub}))
                         })
-                    }
-                    userSub.create({ user: id, club: subscription.club, subscription, start_date, end_date, code: userData.code }).then(() => res.status(200).send('Payment successful'))
-                    // if (checkRenew.length) {
-                    //     await userSub.findByIdAndUpdate(checkRenew.id, { end_date, start_date }).then(() => res.status(200).send('Payment successful'))
-                    // }
-                    // else await userSub.create({ user: id, club: subscription.club, subscription, start_date, end_date, code: userData.code }).then(() => res.status(200).send('Payment successful'))
+                    }else userSub.create({ user: id, club: subscription.club, subscription, start_date, end_date, code: userData.code }).then(() => res.status(200).send('Payment successful'))
                 }
             });
+        })
+    })
+})
+
+exports.getUserWallet = asyncHandler(async (req, res, next) => {
+    const { id } = req.user
+    let total_price = 0
+    await User.findById(id).then(async user => {
+        await userSub.find({ user: id, expired: false }).then(async subs => {
+            if (subs.length > 0) {
+                const filterSubs = await Promise.all(subs.map(async sub => {
+                    const club = await Club.findById(sub.club) || { name: '', logo: '' }
+                    const subscription = await Subscriptions.findById(sub.subscription)
+                    total_price += Number(subscription.price)
+                    return {
+                        _id: sub._id,
+                        club_name: club.name,
+                        club_logo: club.logo,
+                        start_date: sub.start_date,
+                        end_date: sub.end_date,
+                        expired: sub.expired
+                    }
+                }))
+
+                res.json({ subs: filterSubs, wallet: user.wallet, total_price })
+            } else {
+                res.json({ subs: [], wallet: user.wallet, total_price })
+            }
         })
     })
 })
@@ -374,34 +397,6 @@ exports.filterClubs = asyncHandler(async (req, res, next) => {
                 },
             ]).then((Clubs) => res.json({ Clubs }))
         }
-    })
-})
-
-exports.getUserWallet = asyncHandler(async (req, res, next) => {
-    const { id } = req.user
-    let total_price=0
-    await User.findById(id).then(async user => {
-        await userSub.find({ user: id, expired: false }).then(async subs => {
-            if (subs.length > 0) {
-                const filterSubs = await Promise.all(subs.map(async sub => {
-                    const club = await Club.findById(sub.club) || { name: '', logo: '' }
-                    const subscription = await Subscriptions.findById(sub.subscription)
-                    total_price += Number(subscription.price)
-                    return {
-                        _id: sub._id,
-                        club_name: club.name,
-                        club_logo: club.logo,
-                        start_date: sub.start_date,
-                        end_date: sub.end_date,
-                        expired: sub.expired
-                    }
-                }))
-
-                res.json({ subs: filterSubs, wallet: user.wallet, total_price })
-            } else {
-                res.json({ subs: [], wallet: user.wallet, total_price })
-            }
-        })
     })
 })
 
