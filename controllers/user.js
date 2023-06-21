@@ -132,7 +132,7 @@ exports.userMakeSub = asyncHandler(async (req, res, next) => {
     await Subscriptions.findById(subId).then(async (sub) => {
         const club = sub.club
         await userSub.findOne({ user: id, club, expired: false }).then(async check => {
-            if (check) return next(new ApiError("User Already Make Subscreption in This Club "))
+            if (check) return next(new ApiError("User Already Make Subscreption in This Club ",409))
             await Subscriptions.findById(subId).then(async subscription => {
                 if (!subscription) return next(new ApiError("Can't find subscription", 404))
                 if (type === "paypal") {
@@ -178,7 +178,6 @@ exports.userMakeSub = asyncHandler(async (req, res, next) => {
                                 subscription.type === "اسبوعي" ? end_date.setDate(end_date.getDate() + 7) :
                                     subscription.type === "شهري" ? end_date.setMonth(end_date.getMonth() + 1) :
                                         subscription.type === "سنوي" && end_date.setFullYear(end_date.getFullYear() + 1)
-                            await userSub.findOne({user:id,sub})
                             await userSub.create({ user: id, club: subscription.club, subscription, start_date, end_date, code: user.code }).then(async () => {
                                 user.wallet -= Number(subscription.price)
                                 await user.save()
@@ -192,13 +191,42 @@ exports.userMakeSub = asyncHandler(async (req, res, next) => {
     })
 })
 
+exports.renewClubByWallet = asyncHandler(async (req, res, next) => {
+    const { id } = req.user
+    const { subId } = req.params
+    const { userSubId } = req.body
+    await Subscriptions.findById(subId).then(async(sub) => {
+        const club = sub.club
+
+            await Subscriptions.findById(subId).then(async subscription => {
+                if (!subscription) return next(new ApiError("Can't find subscription", 404))
+                await User.findById(id).then(async (user) => {
+                    if (user.wallet < subscription.price) return next(new ApiError("Your Balance in Wallet Not Enough", 400))
+                    else {
+                        const start_date = new Date(Date.now())
+                        let end_date = new Date(Date.now())
+                        end_date = subscription.type === "يومي" ? end_date.setDate(end_date.getDate() + 1) :
+                            subscription.type === "اسبوعي" ? end_date.setDate(end_date.getDate() + 7) :
+                                subscription.type === "شهري" ? end_date.setMonth(end_date.getMonth() + 1) :
+                                    subscription.type === "سنوي" && end_date.setFullYear(end_date.getFullYear() + 1)
+                        await userSub.findById(userSubId).then(async (sub) => {
+                            if (!sub) return next(new ApiError("Can't Find User Pervious Subscription Please Add userSubId", 404))
+                            await userSub.findByIdAndUpdate(userSubId, { start_date, end_date, expired: false }, { new: true }).then((sub) => res.json({ sub }))
+                        })
+                    }
+                })
+    })
+})
+})
+
+
 exports.confirmPayment = asyncHandler(async (req, res, next) => {
     const { subId } = req.params
     const { paymentId, payerId,userSubId } = req.body
     const { id } = req.user
     const userData = await User.findById(id)
-    const club = await Club.findById()
     await Subscriptions.findById(subId).then(async subscription => {
+        console.log(subId)
         if (!subscription) return next(new ApiError("Can't find subscription", 404))
         await Rules.findOne({ payment_type: "paypal", active: true }).then((payment) => {
             paypal.configure({
@@ -218,7 +246,6 @@ exports.confirmPayment = asyncHandler(async (req, res, next) => {
                     subscription.type === "شهري" ? end_date.setMonth(end_date.getMonth() + 1) :
                     subscription.type === "سنوي" && end_date.setFullYear(end_date.getFullYear() + 1)
                     if (userSubId) {
-                        console.log(start_date,end_date);
                         await userSub.findById(userSubId).then(async(sub) => {
                             if (!sub) return next(new ApiError("Can't Find User Pervious Subscription", 404))
                             await userSub.findByIdAndUpdate(userSubId, { start_date, end_date, expired :false},{new :true}).then((sub)=>res.json({sub}))
