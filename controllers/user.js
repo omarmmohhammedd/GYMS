@@ -170,7 +170,7 @@ exports.userMakeSub = asyncHandler(async (req, res, next) => {
                     })
                 } else if (type === "wallet") {
                     await User.findById(id).then(async (user) => {
-                        if (user.wallet < subscription.price) return next(new ApiError("Your Balance in Wallet Not Enough"))
+                        if (user.wallet < subscription.price) return next(new ApiError("Your Balance in Wallet Not Enough",400))
                         else {
                             const start_date = new Date(Date.now())
                             let end_date = new Date(Date.now())
