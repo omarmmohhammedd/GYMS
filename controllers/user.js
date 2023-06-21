@@ -78,9 +78,11 @@ exports.getClubAuth = asyncHandler(async (req, res, next) => {
                     if (lat && long) {
                         let distance = await calcDistance(`${club.lat},${club.long}`, `${lat},${long}`)
                         if (!distance) return next(new ApiError("Invalid distance", 400))
+                        const isFave = await Favorite.findOne({ club_id: req.params.club_id ,user:id})
                         res.json(
                             {
                                 club,
+                                isFave: isFave?true:false,
                                 distance,
                                 subscriptions,
                                 sub: sub ? true : false,
@@ -102,6 +104,7 @@ exports.getClubAuth = asyncHandler(async (req, res, next) => {
                         res.json(
                             {
                                 club,
+                                isFave: isFave ? true : false,
                                 subscriptions,
                                 sub: sub ? true : false,
                                 data: sub ? {
@@ -132,7 +135,6 @@ exports.userMakeSub = asyncHandler(async (req, res, next) => {
             if (check) return next(new ApiError("User Already Make Subscreption in This Club "))
             await Subscriptions.findById(subId).then(async subscription => {
                 if (!subscription) return next(new ApiError("Can't find subscription", 404))
-
                 if (type === "paypal") {
                     await Rules.findOne({ payment_type: "paypal", active: true }).then((payment) => {
                         if (!payment) return next(new ApiError("PayPal Payment Not Found", 404))
@@ -192,7 +194,7 @@ exports.userMakeSub = asyncHandler(async (req, res, next) => {
 
 exports.confirmPayment = asyncHandler(async (req, res, next) => {
     const { subId } = req.params
-    const { paymentId, payerId } = req.body
+    const { paymentId, payerId,userSubId } = req.body
     const { id } = req.user
     const userData = await User.findById(id)
     const club = await Club.findById()
@@ -215,9 +217,13 @@ exports.confirmPayment = asyncHandler(async (req, res, next) => {
                         subscription.type === "اسبوعي" ? end_date.setDate(end_date.getDate() + 7) :
                             subscription.type === "شهري" ? end_date.setMonth(end_date.getMonth() + 1) :
                                 subscription.type === "سنوي" && end_date.setFullYear(end_date.getFullYear() + 1)
-                    const checkRenew = await userSub.find({ user: id, type: subscription.type, club, expired: true })
-                    console.log(checkRenew)
                     // res.json(checkRenew)
+                    if (userSubId) {
+                        await userSub.findById(userSubId).then(async(sub) => {
+                            if (!sub) return next(new ApiError("Can't Find User Pervious Subscription", 404))
+                            await userSub.findByIdAndUpdate(userSubId, { start_date, end_date },{new :true}).then((sub)=>res.json({sub}))
+                        })
+                    }
                     userSub.create({ user: id, club: subscription.club, subscription, start_date, end_date, code: userData.code }).then(() => res.status(200).send('Payment successful'))
                     // if (checkRenew.length) {
                     //     await userSub.findByIdAndUpdate(checkRenew.id, { end_date, start_date }).then(() => res.status(200).send('Payment successful'))
@@ -445,3 +451,4 @@ exports.addOrRemoveFav = asyncHandler(async (req, res, next) => {
         }
     })
 })
+
