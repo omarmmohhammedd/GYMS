@@ -30,6 +30,7 @@ exports.addSubscreptions = asyncHandler(async (req, res, next) => {
 exports.getSubscriptions = asyncHandler(async (req, res, next) => await User.findById(req.user.id)
     .then(async club => await userSub.find({ club: club.club })
         .populate({ path: "user", select: "username home_location code" })
+        .populate({ path: "club", select: "name  location" })
         .populate({ path: "subscription", select: "name " })
         .then((all) => res.json({ all }))
     )
