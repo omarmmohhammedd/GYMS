@@ -135,7 +135,6 @@ exports.userMakeSub = asyncHandler(async (req, res, next) => {
     await Subscriptions.findById(subId).then(async (sub) => {
         const club = sub.club
         await userSub.findOne({ user: id, club, expired: false }).then(async check => {
-            if (check) return next(new ApiError("User Already Make Subscreption in This Club ",409))
             await Subscriptions.findById(subId).then(async subscription => {
                 if (!subscription) return next(new ApiError("Can't find subscription", 404))
                 if (type === "paypal") {
@@ -221,7 +220,6 @@ exports.renewClubByWallet = asyncHandler(async (req, res, next) => {
     })
 })
 })
-
 
 exports.confirmPayment = asyncHandler(async (req, res, next) => {
     const { subId } = req.params
