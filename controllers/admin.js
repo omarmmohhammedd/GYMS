@@ -114,7 +114,7 @@ exports.deleteClub = asyncHandler(async (req, res, next) => {
 // Add Rule
 exports.addRule = asyncHandler(async (req, res, next) => {
     const { type } = req.query
-    if (type === "uses") {
+    if (type === "uses" || type==="privacy") {
         const { textBody } = req.body
         if (!textBody.length) return next(new ApiError("Please Add a textBody", 400))
         await Rules.findOne({ type }).then(async (rule) => {
