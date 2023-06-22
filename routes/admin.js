@@ -19,5 +19,5 @@ router.get("/user_reports", getUserReports)
 
 router.get("/clubs/report", clubReports)
 
-router.delete("/rule/question", deleteQuestion)
+router.post("/rule/question", deleteQuestion)
 module.exports = router

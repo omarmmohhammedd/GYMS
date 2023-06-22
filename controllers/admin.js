@@ -286,7 +286,7 @@ exports.deleteQuestion = asyncHandler(async (req, res, next) => {
         let questions = ruleType.questions && ruleType.questions.filter((Squestion) => Squestion.question !== question)
         ruleType.questions = questions
         await ruleType.save()
-        res.json({ ruleType })
+        res.json({ questions:ruleType })
     })
     
 })
