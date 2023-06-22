@@ -278,3 +278,15 @@ exports.clubReports = asyncHandler(async (req, res, next) => {
         res.json({ clubs_report: filterClubs })
     })
 })
+
+exports.deleteQuestion = asyncHandler(async (req, res, next) => {
+    const { question } = req.body
+    if (!question) return next(new ApiError("Add question", 400))
+    await Rules.findOne({ type: "questions" }).then(async (ruleType) => {
+        let questions = ruleType.questions && ruleType.questions.filter((Squestion) => Squestion.question !== question)
+        ruleType.questions = questions
+        await ruleType.save()
+        res.json({ ruleType })
+    })
+    
+})
