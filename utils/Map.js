@@ -44,8 +44,7 @@ exports.getLocationName = async (latitude, longitude) => {
         await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
             params: {
                 latlng: `${latitude},${longitude}`,
-                key: "AIzaSyCewVD8Afv0cy6NGoCZkQ4PZRW3OQCFfHA",
-                language: "ar"
+                key: "AIzaSyCewVD8Afv0cy6NGoCZkQ4PZRW3OQCFfHA"
             }
         }).then((response) => {
             const results = response.data.results;

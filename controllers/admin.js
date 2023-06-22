@@ -27,6 +27,7 @@ exports.addClub = asyncHandler(async (req, res, next) => {
     if (!req.files.logo) return next(new ApiError("Please Add Club logo", 409))
     const place_name = await getLocationName(lat, long)
     if (!place_name) return next(new ApiError("Location Not Found", 404))
+    console.log(place_name)
     const imgs_path = await Promise.all(req.files.clubImg.map(async img => {
         const uploadImg = await cloudinary.uploader.upload(img.path);
         return uploadImg.secure_url;
